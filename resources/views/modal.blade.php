@@ -6,11 +6,20 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-            id: <span id="id-create"></span>
+            <form id="createForm">
+                <div class="mb-3">
+                    <label for="productName" class="form-label">Nombre</label>
+                    <input type="text" class="form-control" id="productName" name="name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="productPrice" class="form-label">Precio</label>
+                    <input type="number" class="form-control" id="productPrice" name="price" required>
+                </div>
+            </form>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary">Save changes</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            <button type="button" class="btn btn-primary" id="bt-confirm-create">Create</button>
         </div>
         </div>
     </div>
@@ -23,7 +32,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-            id: <span id="id-view"></span>
+            <div id="id-view"></div>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -40,11 +49,20 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-            id: <span id="id-edit"></span>
+            <form id="editForm">
+                <div class="mb-3">
+                    <label for="editProductName" class="form-label">Nombre</label>
+                    <input type="text" class="form-control" id="editProductName" name="name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="editProductPrice" class="form-label">Precio</label>
+                    <input type="number" class="form-control" id="editProductPrice" name="price" required>
+                </div>
+            </form>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-            <button type="button" class="btn btn-primary">Aplicar</button>
+            <button type="button" class="btn btn-primary" id="bt-confirm-edit">Update</button>
         </div>
         </div>
     </div>
