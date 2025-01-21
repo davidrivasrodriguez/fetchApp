@@ -8,8 +8,21 @@ use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller {
 
-    function fetch() {
-        return view('fetch');
+    function main() {
+        return view('main');
+    }
+
+
+    public function index(Request $request) {
+        return response()->json([
+            'products' => Product::orderBy('name')->paginate(10)->setPath(url('product'))
+        ]);
+    }
+
+    public function indexB() {
+        return response()->json([
+            'products' => Product::orderBy('name')->paginate(10)
+        ]);
     }
 
     public function index1() {
@@ -17,16 +30,6 @@ class ProductController extends Controller {
             'products' => Product::orderBy('name')->get()
         ]);
     }
-
-    public function index() {
-        return response()->json([
-            'products' => Product::orderBy('name')->paginate(10)
-        ]);
-    }
-
-    /*public function create() {
-        //
-    }*/
 
     public function store(Request $request) {
         $products = [];
@@ -36,13 +39,13 @@ class ProductController extends Controller {
         ]);
         if ($validator->passes()) {
             $message = '';
-            $object = new Product($request->all());
-            try {
-                $result = $object->save();
-                $products = Product::orderBy('name')->paginate(10);
-            } catch(\Exception $e) {
-                $result = false;
-                $message = $e->getMessage();
+            // $product = new Product($request->all());
+            // $result = $product->store();
+            $result = Product::change($request);
+            if($result) {
+                $products = Product::orderBy('name')->paginate(10)->setPath(url('product'));
+            } else {
+                $message = 'Failed to save product';
             }
         } else {
             $result = false;
@@ -63,10 +66,6 @@ class ProductController extends Controller {
         ]);
     }
 
-    /*public function edit(Product $product) {
-        //
-    }*/
-
     public function update(Request $request, $id) {
         $message = '';
         $product = Product::find($id);
@@ -78,11 +77,11 @@ class ProductController extends Controller {
                 'price' => 'required|numeric|gte:0|lte:100000',
             ]);
             if($validator->passes()) {
-                try {
-                    $result = $product->update($request->all());
-                    $products = Product::orderBy('name')->paginate(10);
-                } catch(\Exception $e) {
-                    $message = $e->getMessage();
+                $result = $product->modify($request);
+                if($result) {
+                    $products = Product::orderBy('name')->paginate(10)->setPath(url('product'));
+                } else {
+                    $message = 'Failed to update product';
                 }
             } else {
                 $message = $validator->getMessageBag();
@@ -93,37 +92,28 @@ class ProductController extends Controller {
         return response()->json(['result' => $result, 'message' => $message, 'products' => $products]);
     }
 
-    public function destroy($id) {
+    public function destroy(Request $request, $id) {
         $message = '';
         $products = [];
         $product = Product::find($id);
         $result = false;
-        $currentPage = request()->get('page', 1);
-        
         if($product != null) {
             try {
                 $result = $product->delete();
-                
-                // Get paginated products
-                $products = Product::orderBy('name')->paginate(10);
-                
-                // If current page has no items and it's not the first page, 
-                // get the previous page
-                if ($products->count() === 0 && $currentPage > 1) {
-                    $products = Product::orderBy('name')
-                        ->paginate(10, ['*'], 'page', $currentPage - 1)
-                        ->setPath(url('product'));
-                } else {
-                    $products->setPath(url('product'));
+                //$page = $request->query('page', 1);
+                //$products = Product::orderBy('name')->paginate(10, ['*'], 'page', $page)->setPath(url('product'));
+                $products = Product::orderBy('name')->paginate(10)->setPath(url('product'));
+                if($products->isEmpty()) {
+                    $page = $products->lastPage();//$page - 1;
+                    $products = Product::orderBy('name')->paginate(10)->setPath(url('product'));
+                    // $products = Product::orderBy('name')->paginate(10, ['*'], 'page', $page)->setPath(url('product'));
                 }
-    
             } catch(\Exception $e) {
                 $message = $e->getMessage();
             }
         } else {
             $message = 'Product not found';
         }
-        
         return response()->json([
             'message' => $message,
             'products' => $products,

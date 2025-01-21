@@ -1,58 +1,55 @@
 export default class HttpClient {
-    constructor( baseUrl= '', csrfToken = '') {
+    constructor(baseUrl = '', csrfToken = '') {
         this.baseUrl = baseUrl;
         this.csrfToken = csrfToken;
     }
 
-    request (url, method, callBack, parameters = {}, headers) {
-
-        headers = headers || {};
-        if(method != 'GET') {
-            headers['X-CSRF-TOKEN'] = this.csrfToken;
-        }
+        request(url, method = 'GET', parameters = {}, headers = {}, callBack) {
+        // Check if the URL is absolute (starts with http:// or https://)
+        const finalUrl = url.startsWith('http') ? url : this.baseUrl + url;
+    
         const options = {
             method,
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
                 ...headers
-            },
-        }
-
-        const cleanUrl = url.replace(this.baseUrl, '');
+            }
+        };
     
-        let fullUrl = this.baseUrl + cleanUrl;
-    
-        if (method === 'GET' && Object.entries(parameters).length > 0) {
-            const queryString = new URLSearchParams(parameters).toString();
-            fullUrl = `${fullUrl}?${queryString}`;
-        } else if( method !== 'GET') {
-            options.body = JSON.stringify(parameters);
+        if (method !== 'GET') {
+            options.headers['X-CSRF-Token'] = this.csrfToken;
+            if (Object.keys(parameters).length > 0) {
+                options.body = JSON.stringify(parameters);
+            }
         }
-        fetch(fullUrl, options)
+    
+        fetch(finalUrl, options)
             .then(response => response.json())
-            .then(data => { 
-                callBack(data);
-                console.log(data);
+            .then(data => {
+                if (typeof callBack === 'function') {
+                    callBack(data);
+                }
             })
-            .catch(error => console.log(url, method, error));
+            .catch(error => {
+                console.error('Request failed:', error);
+            });
     }
 
-    delete(url, callBack) {
-        this.request(url, 'DELETE', callBack);
+
+    delete(url, parameters = {}, callBack) {
+        this.request(url, 'DELETE', parameters, {}, callBack);
     }
+
     get(url, parameters = {}, callBack) {
-        this.request(url, 'GET', callBack, parameters);
+        this.request(url, 'GET', parameters, {}, callBack);
     }
 
     post(url, parameters = {}, callBack) {
-        this.request(url, 'POST', callBack, parameters);
+        this.request(url, 'POST', parameters, {}, callBack);
     }
 
     put(url, parameters = {}, callBack) {
-        this.request(url, 'PUT', callBack, parameters);
+        this.request(url, 'PUT', parameters, {}, callBack);
     }
-
-
-
 }
