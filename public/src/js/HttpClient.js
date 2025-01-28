@@ -5,16 +5,16 @@ export default class HttpClient {
     }
 
         request(url, method = 'GET', parameters = {}, headers = {}, callBack) {
-        // Check if the URL is absolute (starts with http:// or https://)
         const finalUrl = url.startsWith('http') ? url : this.baseUrl + url;
-    
+        
         const options = {
             method,
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
                 ...headers
-            }
+            },
+            credentials: 'include'
         };
     
         if (method !== 'GET') {
@@ -25,14 +25,50 @@ export default class HttpClient {
         }
     
         fetch(finalUrl, options)
-            .then(response => response.json())
+            .then(async response => {
+                const contentType = response.headers.get('content-type');
+                
+                if (!response.ok) {
+                    const errorData = contentType?.includes('application/json') 
+                        ? await response.json() 
+                        : await response.text();
+                    throw new Error(JSON.stringify({
+                        status: response.status,
+                        statusText: response.statusText,
+                        data: errorData
+                    }));
+                }
+    
+                if (contentType?.includes('application/json')) {
+                    return response.json();
+                } else if (contentType?.includes('text/html')) {
+                    return response.text();
+                }
+    
+                return response.text().then(text => {
+                    try {
+                        return JSON.parse(text);
+                    } catch {
+                        return text;
+                    }
+                });
+            })
             .then(data => {
                 if (typeof callBack === 'function') {
+                    // Add session check in successful response
+                    if (data.status === 'success') {
+                        localStorage.setItem('isAuthenticated', 'true');
+                    }
                     callBack(data);
                 }
             })
             .catch(error => {
                 console.error('Request failed:', error);
+                const errorElement = document.getElementById('productError');
+                if (errorElement) {
+                    errorElement.style.display = 'block';
+                    errorElement.textContent = error.message;
+                }
             });
     }
 
